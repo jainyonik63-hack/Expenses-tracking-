@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#172554"><title>Expense Tracking V3</title>
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+:root{font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#172033;background:#f4f6fb}*{box-sizing:border-box}body{margin:0}header{background:#172554;color:white;padding:20px max(18px,calc((100% - 1050px)/2));display:flex;justify-content:space-between;align-items:center;gap:12px}main{max-width:1050px;margin:22px auto;padding:0 16px}.panel{background:white;border:1px solid #e1e6f0;border-radius:16px;padding:18px;margin:14px 0;box-shadow:0 4px 18px #1e293b0a}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}.metric{padding:16px;border-radius:13px;background:#f1f5ff}.metric small{color:#596579}.metric strong{display:block;font-size:1.45rem;margin-top:5px}label{display:block;font-size:.9rem;font-weight:600;margin:9px 0 5px}input,select,button{font:inherit}input,select{width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:9px;background:white}button{border:0;border-radius:9px;padding:10px 14px;background:#1d4ed8;color:white;font-weight:650;cursor:pointer}button.secondary{background:#e8eefc;color:#18336e}button.danger{background:#b42318}button:disabled{opacity:.5}.actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.muted{color:#64748b;font-size:.9rem}.hidden{display:none!important}.row{display:flex;justify-content:space-between;align-items:center;gap:10px}.tx{display:grid;grid-template-columns:1fr auto;gap:8px;padding:12px 0;border-bottom:1px solid #edf0f5}.tx:last-child{border:0}.pill{display:inline-block;padding:3px 8px;border-radius:99px;background:#eef2ff;font-size:.78rem}.income{color:#15803d}.expense{color:#b42318}canvas{width:100%;max-height:260px}.avatar{width:58px;height:58px;border-radius:50%;object-fit:cover;background:#dbeafe}.notice{padding:11px;background:#fff7e6;border-radius:10px;color:#79520a;font-size:.88rem}.auth{max-width:520px;margin:8vh auto;padding:18px}.auth h1{margin-top:0}footer{text-align:center;color:#64748b;font-size:.8rem;padding:25px}@media(min-width:700px){.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}}
+</style>
+</head>
+<body>
+<header><div><strong>Expense Tracking</strong><div style="font-size:.82rem;opacity:.8">Version 3 · Private personal ledger</div></div><button id="lockBtn" class="secondary hidden">Lock</button></header>
+<main>
+<section id="auth" class="panel auth">
+<h1 id="authTitle">Welcome back</h1><p class="muted" id="authDesc">Unlock your encrypted expense records.</p>
+<form id="loginForm"><label>Six-digit security PIN</label><input id="loginPin" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" required placeholder="••••••"><button style="width:100%;margin-top:12px">Unlock</button></form>
+<form id="setupForm" class="hidden">
+<label>Full name</label><input id="fullName" required maxlength="80">
+<label>Birth date (DD/MM/YYYY)</label><input id="birthDate" type="date" required>
+<label>Professional category</label><select id="category"><option>Student</option><option>Business</option><option>Trader</option><option>Teenager</option></select>
+<label>Profile picture (optional)</label><input id="photo" type="file" accept="image/*">
+<label>Create six-digit PIN</label><input id="newPin" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" required>
+<label>Confirm PIN</label><input id="confirmPin" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" required>
+<button style="width:100%;margin-top:12px">Create private profile</button>
+</form>
+<p class="notice">Your profile and transactions are encrypted in this browser using your PIN. If you lose the PIN, the app cannot recover your records. This is local-device protection, not a cloud backup.</p>
+<p id="authError" class="expense" role="alert"></p>
+</section>
+<section id="app" class="hidden">
+<div class="panel row"><div class="row"><img id="avatar" class="avatar" alt="Profile picture"><div><strong id="displayName"></strong><div class="muted" id="profileMeta"></div></div></div><button class="secondary" id="editProfile">Edit profile</button></div>
+<div class="grid">
+<div class="metric"><small>Income</small><strong class="income" id="incomeTotal">₹0.00</strong></div>
+<div class="metric"><small>Expenses</small><strong class="expense" id="expenseTotal">₹0.00</strong></div>
+<div class="metric"><small>Balance</small><strong id="balanceTotal">₹0.00</strong></div>
+</div>
+<div class="panel">
+<h2>Add transaction</h2><form id="txForm" class="grid">
+<input id="txId" type="hidden">
+<div><label>Description</label><input id="description" required maxlength="100" placeholder="e.g. Books"></div>
+<div><label>Amount (₹)</label><input id="amount" type="number" min="0.01" step="0.01" required></div>
+<div><label>Type</label><select id="type"><option value="expense">Expense</option><option value="income">Income</option></select></div>
+<div><label>Category</label><select id="txCategory"><option>Food</option><option>Transport</option><option>Education</option><option>Shopping</option><option>Bills</option><option>Health</option><option>Entertainment</option><option>Salary</option><option>Business</option><option>Other</option></select></div>
+<div><label>Date</label><input id="txDate" type="date" required></div>
+<div style="align-self:end" class="actions"><button id="saveTx">Save transaction</button><button type="button" class="secondary hidden" id="cancelEdit">Cancel edit</button></div>
+</form></div>
+<div class="two">
+<div class="panel"><div class="row"><h2>Transactions</h2><select id="period" style="max-width:160px"><option value="month">This month</option><option value="year">This year</option><option value="all">All time</option></select></div><div id="transactions"></div></div>
+<div class="panel"><h2>Expense breakdown</h2><canvas id="chart" width="600" height="300" aria-label="Expense breakdown chart"></canvas><div id="chartLegend" class="muted"></div></div>
+</div>
+<div class="panel"><h2>Reports & export</h2><div class="grid">
+<div><label>Report year</label><select id="reportYear"></select></div>
+<div><label>Report month</label><select id="reportMonth"><option value="all">Whole year</option><option value="0">January</option><option value="1">February</option><option value="2">March</option><option value="3">April</option><option value="4">May</option><option value="5">June</option><option value="6">July</option><option value="7">August</option><option value="8">September</option><option value="9">October</option><option value="10">November</option><option value="11">December</option></select></div>
+</div><p id="reportSummary" class="muted"></p><div class="actions"><button id="csvBtn">Export Excel-compatible CSV</button><button id="pdfBtn" class="secondary">Print / Save as PDF</button></div><p class="muted">CSV opens in Excel or Google Sheets. For PDF, choose “Save as PDF” in your browser's print dialog.</p></div>
+</section>
+</main><footer>Expense Tracking V3 · Data stays in this browser</footer>
+<script src="app.js"></script>
+</body></html>
